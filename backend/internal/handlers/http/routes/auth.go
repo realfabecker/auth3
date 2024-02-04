@@ -41,14 +41,7 @@ func (w *AuthController) Login(c *fiber.Ctx) error {
 
 	token, err := w.authSrv.Login(q.Email, q.Password)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	}
-
-	if token.AuthChallenge != nil {
-		return c.Status(401).JSON(cordom.ResponseDTO[cordom.UserToken]{
-			Status: "error",
-			Data:   token,
-		})
+		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}
 
 	return c.JSON(cordom.ResponseDTO[cordom.UserToken]{
@@ -79,14 +72,45 @@ func (w *AuthController) Change(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	token, err := w.authSrv.Change(q.Email, q.NewPassword, q.Session)
+	if err := w.authSrv.Change(q.Email, q.NewPassword, q.PasswordResetCode); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(cordom.EmptyResponseDTO{
+		Status: "success",
+	})
+}
+
+// Forgot user password
+//
+//	@Summary		Forgot password
+//	@Description	Forgot password
+//	@Tags			Auth
+//	@Param			request	body	cordom.UserLoginForgotDTO	true	"Login payload"
+//	@Produce		json
+//	@Success		200	{object}	cordom.ResponseDTO[cordom.CodeDeliveryDetails]
+//	@Failure		400
+//	@Failure		500
+//	@Router			/auth3/forgot [post]
+func (w *AuthController) Forgot(c *fiber.Ctx) error {
+	q := cordom.UserLoginForgotDTO{}
+	if err := c.BodyParser(&q); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	v := validator.New(validator.WithRequiredStructEnabled())
+	if err := v.Struct(q); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	details, err := w.authSrv.Forgot(q.Email)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	return c.JSON(cordom.ResponseDTO[cordom.UserToken]{
+	return c.JSON(cordom.ResponseDTO[cordom.CodeDeliveryDetails]{
 		Status: "success",
-		Data:   token,
+		Data:   details,
 	})
 }
 

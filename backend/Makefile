@@ -1,18 +1,21 @@
 .PHONY: build-http
-build-http: build-docs build-api
+http: docs api
 
-.PHONY: build-docs
-build-docs:
-	swag init --parseDependency --parseInternal -g http.go -d "./internal/handlers/http" -o "./internal/handlers/http/docs"
+.PHONY: docs
+docs:
+	swag init \
+		--parseDependency \
+		--parseInternal \
+		-g http.go -d "./internal/handlers/http" -o "./internal/handlers/http/docs"
 
-.PHONY: build-api
-build-api:
+.PHONY: api
+api:
 	GOOS=linux GOARCH=amd64 go build -o ./out/http ./cmd/http/main.go
 
-.PHONY: build-lambda
-build-lambda:
+.PHONY: lambda
+lambda:
 	GOOS=linux GOARCH=arm64 go build -o ./out/bootstrap ./cmd/lambda/main.go
 
-.PHONY: build-auth4
-build-auth4:
+.PHONY: auth4
+auth4:
 	GOOS=linux GOARCH=arm64 go build -o ./out/bootstrap ./cmd/auth4/main.go

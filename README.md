@@ -138,33 +138,62 @@ meio de uma api gateway, responsável por validação de tokens gerados em conte
 ```mermaid
 sequenceDiagram
     actor User
-    User ->> API: Request /auth/login
-    API ->> Cognito: Request USER_PASSWORD_AUTH
-
-    alt logged_in
-        Cognito -->> API: Response with AccessToken+RefreshToken
-        API -->> User: Response with AccessToken+RefreshToken
+    User ->> API: POST /auth/login [email,password]
+    activate User
+    activate API
+    API ->> Cognito: InitiateAuth USER_PASSWORD_AUTH
+    activate Cognito
+    alt authorized
+        Cognito -->> API: success(AccessToken)
+        API -->> User: success(AccessToken)
     else unauthorized
-        Cognito -->> API: Response with unauthorized error
-        API -->> User: Response with unauthorized error
+        Cognito -->> API: error(Unauthorized)
+        deactivate Cognito
+        API -->> User: error(Unauthorized)
     end
+    deactivate User
+    deactivate API
 ```
 
-### /auth/change
+### /auth/forgot
 
 ```mermaid
 sequenceDiagram
     actor User
-    User ->> API: Request /auth/change
-    API ->> Cognito: Respond to auth challenge NEW_PASSWORD_REQUIRED
+    User ->> API: POST /auth/forgot [email]
+    activate User
+    activate API
+    API ->> Cognito: ForgotPassword [email]
+    activate Cognito
+    Note over Cognito, E-mail: Envio async de reset code
+    Cognito ->> E-mail: Send password reset code
+    Cognito -->> API: success(Delivery Medium)
+    deactivate Cognito
+    API -->> User: success(Delivery Medium)
+    deactivate API
+    deactivate User
+```
 
-    alt logged_in
-        Cognito -->> API: Response with AccessToken+RefreshToken
-        API -->> User: Response with AccessToken+RefreshToken
-    else invalid_password:
-        Cognito -->> API: Response with invalid password request
-        API -->> User: Response with invalid password request
+## /auth/change
+
+```mermaid
+sequenceDiagram
+    actor User
+    User ->> API: POST /auth/change [email, new-password, code]
+    activate User
+    activate API
+    API ->> Cognito: ConfirmForgotPassword [email, new-password, code]
+    activate Cognito
+    alt invalid_reset_code     
+        Cognito -->> API: error(invalid code provided)
+        API -->> User: error(invalid code provided)
+    else password_changed     
+        Cognito -->> API: success         
+        API -->> User: success
     end
+    deactivate Cognito
+    deactivate API
+    deactivate User
 ```
 
 ## Publicação

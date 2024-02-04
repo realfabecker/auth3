@@ -21,10 +21,7 @@ type ResponseDTO[T any] struct {
 } //	@name	ResponseDTO
 
 type UserToken struct {
-	RefreshToken  *string `json:"RefreshToken,omitempty"`
-	AccessToken   *string `json:"AccessToken,omitempty"`
-	AuthChallenge *string `json:"AuthChallenge,omitempty"`
-	AuthSession   *string `json:"AuthSession,omitempty"`
+	AccessToken *string `json:"AccessToken,omitempty"`
 } // @name	UserToken
 
 type UserLoginDTO struct {
@@ -32,8 +29,16 @@ type UserLoginDTO struct {
 	Password string `json:"password" validate:"required,min=6"`
 } // @name	UserLoginDTO
 
+type UserLoginForgotDTO struct {
+	Email string `json:"email" validate:"required,email"`
+} // @name	UserLoginForgotDTO
+
 type UserLoginChangeDTO struct {
-	Email       string `json:"email" validate:"required,email"`
-	NewPassword string `json:"new_password" validate:"required,min=6"`
-	Session     string `json:"session" validate:"required"`
+	Email             string `json:"email" validate:"required,email"`
+	NewPassword       string `json:"newPassword" validate:"required,min=6"`
+	PasswordResetCode string `json:"passwordResetCode" validate:"required"`
 } // @name	UserLoginChangeDTO
+
+type CodeDeliveryDetails struct {
+	DeliveryMedium string `json:"deliveryMedium"`
+} // @name CodeDeliveryDetails

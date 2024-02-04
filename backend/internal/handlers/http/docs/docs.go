@@ -56,6 +56,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth3/forgot": {
+            "post": {
+                "description": "Forgot password",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Forgot password",
+                "parameters": [
+                    {
+                        "description": "Login payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserLoginForgotDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseDTO-CodeDeliveryDetails"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/auth3/login": {
             "post": {
                 "description": "User login",
@@ -115,12 +152,40 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "CodeDeliveryDetails": {
+            "type": "object",
+            "properties": {
+                "deliveryMedium": {
+                    "type": "string"
+                }
+            }
+        },
         "EmptyResponseDTO": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer",
                     "example": 200
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operação realizada com sucesso"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "ResponseDTO-CodeDeliveryDetails": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/CodeDeliveryDetails"
                 },
                 "message": {
                     "type": "string",
@@ -156,18 +221,18 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "new_password",
-                "session"
+                "newPassword",
+                "passwordResetCode"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
-                "new_password": {
+                "newPassword": {
                     "type": "string",
                     "minLength": 6
                 },
-                "session": {
+                "passwordResetCode": {
                     "type": "string"
                 }
             }
@@ -188,19 +253,21 @@ const docTemplate = `{
                 }
             }
         },
+        "UserLoginForgotDTO": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "UserToken": {
             "type": "object",
             "properties": {
                 "AccessToken": {
-                    "type": "string"
-                },
-                "AuthChallenge": {
-                    "type": "string"
-                },
-                "AuthSession": {
-                    "type": "string"
-                },
-                "RefreshToken": {
                     "type": "string"
                 }
             }

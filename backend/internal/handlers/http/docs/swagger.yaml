@@ -1,9 +1,28 @@
 definitions:
+  CodeDeliveryDetails:
+    properties:
+      deliveryMedium:
+        type: string
+    type: object
   EmptyResponseDTO:
     properties:
       code:
         example: 200
         type: integer
+      message:
+        example: Operação realizada com sucesso
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  ResponseDTO-CodeDeliveryDetails:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/CodeDeliveryDetails'
       message:
         example: Operação realizada com sucesso
         type: string
@@ -29,15 +48,15 @@ definitions:
     properties:
       email:
         type: string
-      new_password:
+      newPassword:
         minLength: 6
         type: string
-      session:
+      passwordResetCode:
         type: string
     required:
     - email
-    - new_password
-    - session
+    - newPassword
+    - passwordResetCode
     type: object
   UserLoginDTO:
     properties:
@@ -50,15 +69,16 @@ definitions:
     - email
     - password
     type: object
+  UserLoginForgotDTO:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   UserToken:
     properties:
       AccessToken:
-        type: string
-      AuthChallenge:
-        type: string
-      AuthSession:
-        type: string
-      RefreshToken:
         type: string
     type: object
 info:
@@ -92,6 +112,30 @@ paths:
         "500":
           description: Internal Server Error
       summary: Change password
+      tags:
+      - Auth
+  /auth3/forgot:
+    post:
+      description: Forgot password
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UserLoginForgotDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseDTO-CodeDeliveryDetails'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Forgot password
       tags:
       - Auth
   /auth3/login:

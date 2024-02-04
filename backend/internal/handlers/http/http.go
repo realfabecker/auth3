@@ -86,6 +86,7 @@ func (a *Handler) Register() error {
 	a.app.Get("/docs/*", swagger.HandlerDefault)
 	auth3 := a.app.Group("/auth3")
 	auth3.Post("/login", a.authController.Login)
+	auth3.Post("/forgot", a.authController.Forgot)
 	auth3.Post("/change", a.authController.Change)
 	auth3.Get("/status", a.authController.Healthcheck)
 	return nil

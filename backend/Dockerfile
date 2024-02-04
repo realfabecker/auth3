@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.3-labs
 FROM golang:1.20 as base
 # non root user configutraion
 RUN groupadd --gid 1000 gopher \
@@ -9,11 +10,16 @@ ENV GOPATH="/home/gopher"
 ENV PATH="${GOPATH}/bin:${PATH}"
 
 FROM base as dev
-# go air for hot reload in local development
-# RUN go install  github.com/cosmtrek/air@latest
 COPY dev.bash .
-RUN bash dev.bash
-# download project dependencies
+RUN <<EOF
+  go install "github.com/cosmtrek/air@latest"
+  go install "golang.org/x/tools/gopls@latest"
+  go install "github.com/tpng/gopkgs@latest"
+  go install "github.com/ramya-rao-a/go-outline@latest"
+  go install "honnef.co/go/tools/cmd/staticcheck@latest"
+  go install "github.com/go-delve/delve/cmd/dlv@latest"
+  go install "github.com/swaggo/swag/cmd/swag@latest"
+EOF
 WORKDIR /app
 COPY go.mod .
 COPY go.sum .

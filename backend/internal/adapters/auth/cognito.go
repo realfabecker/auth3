@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	cordom "github.com/realfabecker/auth3/internal/core/domain"
@@ -33,39 +33,30 @@ func (u *CognitoAuthService) Login(email string, password string) (*cordom.UserT
 	if err != nil {
 		return nil, err
 	}
-	if auth.ChallengeName == "NEW_PASSWORD_REQUIRED" {
-		return &cordom.UserToken{
-			AuthSession:   auth.Session,
-			AuthChallenge: aws.String("NEW_PASSWORD_REQUIRED"),
-		}, nil
-	}
-	if auth.AuthenticationResult.AccessToken == nil {
-		return nil, errors.New("unexpected authorization error")
-	}
 	return &cordom.UserToken{
-		AccessToken:  auth.AuthenticationResult.AccessToken,
-		RefreshToken: auth.AuthenticationResult.RefreshToken,
+		AccessToken: auth.AuthenticationResult.AccessToken,
 	}, nil
 }
 
-func (u *CognitoAuthService) Change(email string, password string, session string) (*cordom.UserToken, error) {
-	auth, err := u.cognitoClient.RespondToAuthChallenge(context.TODO(), &cognitoidentityprovider.RespondToAuthChallengeInput{
-		ChallengeName: "NEW_PASSWORD_REQUIRED",
-		ClientId:      &u.cognitoClientId,
-		Session:       &session,
-		ChallengeResponses: map[string]string{
-			"USERNAME":     email,
-			"NEW_PASSWORD": password,
-		},
+func (u *CognitoAuthService) Forgot(email string) (*cordom.CodeDeliveryDetails, error) {
+	res, err := u.cognitoClient.ForgotPassword(context.TODO(), &cognitoidentityprovider.ForgotPasswordInput{
+		ClientId: &u.cognitoClientId,
+		Username: &email,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to trigger forgot password flow: %w", err)
 	}
-	if auth.AuthenticationResult.AccessToken == nil {
-		return nil, errors.New("unexpected authorization error")
-	}
-	return &cordom.UserToken{
-		AccessToken:  auth.AuthenticationResult.AccessToken,
-		RefreshToken: auth.AuthenticationResult.RefreshToken,
+	return &cordom.CodeDeliveryDetails{
+		DeliveryMedium: string(res.CodeDeliveryDetails.DeliveryMedium),
 	}, nil
+}
+
+func (u *CognitoAuthService) Change(email string, newPassword string, passwordResetCode string) error {
+	_, err := u.cognitoClient.ConfirmForgotPassword(context.TODO(), &cognitoidentityprovider.ConfirmForgotPasswordInput{
+		Username:         aws.String(email),
+		ClientId:         aws.String(u.cognitoClientId),
+		ConfirmationCode: aws.String(passwordResetCode),
+		Password:         aws.String(newPassword),
+	})
+	return err
 }
