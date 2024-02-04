@@ -131,6 +131,42 @@ como função **lambda** permite apenas o uso em produção.
 A compilação como auth4 permite o uso do aplicativo em contexto de middleware de autorização das chamadas realizadas por
 meio de uma api gateway, responsável por validação de tokens gerados em contexto http ou lambda.
 
+## Diagramas de Sequência
+
+### /auth/login
+
+```mermaid
+sequenceDiagram
+    actor User
+    User ->> API: Request /auth/login
+    API ->> Cognito: Request USER_PASSWORD_AUTH
+
+    alt logged_in
+        Cognito -->> API: Response with AccessToken+RefreshToken
+        API -->> User: Response with AccessToken+RefreshToken
+    else unauthorized
+        Cognito -->> API: Response with unauthorized error
+        API -->> User: Response with unauthorized error
+    end
+```
+
+### /auth/change
+
+```mermaid
+sequenceDiagram
+    actor User
+    User ->> API: Request /auth/change
+    API ->> Cognito: Respond to auth challenge NEW_PASSWORD_REQUIRED
+
+    alt logged_in
+        Cognito -->> API: Response with AccessToken+RefreshToken
+        API -->> User: Response with AccessToken+RefreshToken
+    else invalid_password:
+        Cognito -->> API: Response with invalid password request
+        API -->> User: Response with invalid password request
+    end
+```
+
 ## Publicação
 
 A publicação desse serviço em produção deve ser realizada por meio do projeto [caterpillar][caterpillar-link].
