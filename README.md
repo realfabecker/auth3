@@ -196,6 +196,37 @@ sequenceDiagram
     deactivate User
 ```
 
+## auth4
+
+```mermaid
+sequenceDiagram
+    actor User
+    User->>Gateway: Endpoint access
+    activate User
+    activate Gateway
+    Gateway->>Auth4: Verify Token
+    activate Auth4
+    Auth4->>Cognito: Verify Token (Jwk)
+    activate Cognito
+    alt token_is_invalid
+        Cognito-->>Auth4: error(invalid token)
+        Auth4-->>Gateway: error(invalid token)
+        Gateway-->>User: error(invalid token)
+    else token_is_valid
+        Cognito-->>Auth4: success
+        deactivate Cognito
+        Auth4-->>Gateway: success
+        deactivate Auth4
+        Gateway->>Destination: forward request
+        activate Destination
+        Destination-->>User: reply request
+        deactivate Destination
+    end
+
+    deactivate Gateway
+    deactivate User
+```
+
 ## Publicação
 
 A publicação desse serviço em produção deve ser realizada por meio do projeto [caterpillar][caterpillar-link].
