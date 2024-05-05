@@ -34,7 +34,9 @@ func (u *CognitoAuthService) Login(email string, password string) (*cordom.UserT
 		return nil, err
 	}
 	return &cordom.UserToken{
-		AccessToken: auth.AuthenticationResult.AccessToken,
+		IdToken:      auth.AuthenticationResult.IdToken,
+		RefreshToken: auth.AuthenticationResult.RefreshToken,
+		AccessToken:  auth.AuthenticationResult.AccessToken,
 	}, nil
 }
 

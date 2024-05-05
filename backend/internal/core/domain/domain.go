@@ -21,7 +21,9 @@ type ResponseDTO[T any] struct {
 } //	@name	ResponseDTO
 
 type UserToken struct {
-	AccessToken *string `json:"AccessToken,omitempty"`
+	IdToken      *string `json:"IdToken,omitempty"`
+	RefreshToken *string `json:"RefreshToken,omitempty"`
+	AccessToken  *string `json:"AccessToken,omitempty"`
 } // @name	UserToken
 
 type UserLoginDTO struct {
